@@ -8,7 +8,7 @@ import Token from 'components/Token/Token';
 import { useFormErrors, useAccount, useEscrowFee } from 'hooks';
 import { countries } from 'models/countries';
 import { Errors, Resolver } from 'models/errors';
-import { Bank, List, Order, User } from 'models/types';
+import { Bank, List, Order, User, Token as TokenType } from 'models/types';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { truncate } from 'utils';
@@ -26,6 +26,12 @@ interface BuyAmountStepProps extends BuyStepProps {
 	price: number | undefined;
 }
 
+// 1. 定义可供下拉选择的代币列表（根据你的需求添加 MER 等币种）
+const SUPPORTED_TOKENS = [
+	{ name: 'MER', symbol: 'MER', decimals: 18, address: '0x...' },
+	{ name: 'USDT', symbol: 'USDT', decimals: 6, address: '0x...' }
+];
+
 const Prefix = ({ label, image }: { label: string; image: React.ReactNode }) => (
 	<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 		<div className="flex flex-row">
@@ -41,7 +47,10 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 
 	const { list = {} as List, token_amount: orderTokenAmount, fiat_amount: orderFiatAmount } = order;
 	const { address } = useAccount();
-	const { fiat_currency: currency, token, accept_only_verified: acceptOnlyVerified } = list;
+	const { fiat_currency: currency, token: listToken, accept_only_verified: acceptOnlyVerified } = list;
+
+	// 2. 将选中的 token 保存到 state，默认优先使用列表里的 token 或支持列表的第一个（如 MER）
+	const [selectedToken, setSelectedToken] = useState<TokenType>(listToken || SUPPORTED_TOKENS[0]);
 
 	const [fiatAmount, setFiatAmount] = useState<number | undefined>(
 		orderFiatAmount || (quickBuyFiat ? Number(quickBuyFiat) : undefined)
@@ -54,15 +63,17 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 
 	const { errors, clearErrors, validate } = useFormErrors();
 
-	const banks = list.payment_methods.map((pm) => ({ ...pm.bank, id: pm.id }));
+	const banks = list.payment_methods?.map((pm) => ({ ...pm.bank, id: pm.id })) || [];
 	const instantEscrow = list?.escrow_type === 'instant';
+
+	const token = selectedToken; // 使用当前选择的 token
 
 	const { data: sellerContract } = useContractRead({
 		address: DEPLOYER_CONTRACTS[list.chain_id],
 		abi: OpenPeerDeployer,
 		functionName: 'sellerContracts',
-		args: [list.seller.address],
-		enabled: instantEscrow,
+		args: [list.seller?.address],
+		enabled: instantEscrow && !!list.seller?.address,
 		watch: true,
 		chainId: list.chain_id
 	});
@@ -71,7 +82,7 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 		address: (sellerContract as `0x${string}`) || list?.contract,
 		abi: OpenPeerEscrow as Abi,
 		functionName: 'balances',
-		args: [list?.token?.address],
+		args: [token?.address],
 		enabled: instantEscrow,
 		watch: true,
 		chainId: list.chain_id
@@ -104,7 +115,7 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 			const escrowFee = fee || BigInt(0);
 			const escrowedBalance = ((balance as bigint) || BigInt(0)) - escrowFee;
 
-			if (instantEscrow && escrowedBalance < parseUnits(String(tokenAmount), token.decimals)) {
+			if (instantEscrow && token && escrowedBalance < parseUnits(String(tokenAmount), token.decimals)) {
 				error.tokenAmount = `Only ${formatUnits(escrowedBalance, token.decimals)} ${
 					token.symbol
 				} is available in the escrow account. Should be less or equal ${formatUnits(
@@ -173,13 +184,13 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 	function onChangeFiat(val: number | undefined) {
 		clearErrors(['fiatAmount']);
 		setFiatAmount(val);
-		if (price && val) setTokenAmount(truncate(val / price, token.decimals));
+		if (price && val && token) setTokenAmount(truncate(val / price, token.decimals));
 	}
 
 	function onChangeToken(val: number | undefined) {
 		clearErrors(['tokenAmount']);
 
-		if (val) {
+		if (val && token) {
 			setTokenAmount(truncate(val, token.decimals));
 		} else {
 			setTokenAmount(val);
@@ -254,22 +265,23 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 					/>
 				) : (
 					<>
+						{/* 3. 在这里展示当前可选的 Token */}
 						<Input
 							label={buyCrypto ? 'Amount to sell' : 'Amount to buy'}
-							prefix={<Prefix label={token!.name} image={<Token token={token} size={24} />} />}
+							prefix={<Prefix label={token?.name || 'MER'} image={<Token token={token} size={24} />} />}
 							id="amountToReceive"
 							value={tokenAmount}
 							onChangeNumber={(t) => onChangeToken(t)}
 							type="decimal"
-							decimalScale={token.decimals}
+							decimalScale={token?.decimals || 18}
 							error={errors.tokenAmount}
 						/>
 						<Input
 							label={buyCrypto ? "Amount you'll receive" : "Amount you'll pay"}
 							prefix={
 								<Prefix
-									label={currency!.symbol}
-									image={<Flag name={countries[currency.country_code]} size={24} />}
+									label={currency?.symbol || 'USD'}
+									image={currency?.country_code ? <Flag name={countries[currency.country_code]} size={24} /> : null}
 								/>
 							}
 							id="amountBuy"
@@ -281,7 +293,7 @@ const Amount = ({ order, updateOrder, price }: BuyAmountStepProps) => {
 
 						{!buyCrypto && (
 							<BankSelect
-								currencyId={currency.id}
+								currencyId={currency?.id}
 								onSelect={(b) => setBank(b as Bank)}
 								selected={bank}
 								options={banks}
