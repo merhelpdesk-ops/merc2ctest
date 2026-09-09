@@ -18,6 +18,26 @@ interface FilterProps {
 	setNeedToReset?: (value: boolean) => void;
 }
 
+// 1. 定义仅支持的稳定币列表（USDT / USDC）
+const STABLECOINS: Token[] = [
+	{
+		id: 1,
+		name: 'Tether USD',
+		symbol: 'USDT',
+		decimals: 6,
+		address: '0x...', // 替换为你的 USDT 合约地址
+		chain_id: 1
+	},
+	{
+		id: 2,
+		name: 'USD Coin',
+		symbol: 'USDC',
+		decimals: 6,
+		address: '0x...', // 替换为你的 USDC 合约地址
+		chain_id: 1
+	}
+];
+
 const Filters = ({ onFilterUpdate, needToReset, setNeedToReset }: FilterProps) => {
 	const [chain, setChain] = useState<Chain>();
 	const [amount, setAmount] = useState<number>();
@@ -70,11 +90,13 @@ const Filters = ({ onFilterUpdate, needToReset, setNeedToReset }: FilterProps) =
 				</div>
 			</div>
 			<div className="w-full lg:w-auto">
+				{/* 2. 修改 TokenSelect 仅传入 USDT 和 USDC */}
 				<TokenSelect
 					label="Token"
 					onSelect={setToken}
 					selected={token}
 					networkId={chain?.id}
+					tokens={STABLECOINS}
 					labelStyle="text-sm truncate"
 				/>
 			</div>
