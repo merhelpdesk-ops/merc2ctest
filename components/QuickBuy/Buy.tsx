@@ -16,11 +16,33 @@ interface BuyProps {
 	onLoading: (loading: boolean) => void;
 }
 
+// 1. 定义仅支持的稳定币列表（USDT / USDC）
+const STABLECOINS: Token[] = [
+	{
+		id: 1,
+		name: 'Tether USD',
+		symbol: 'USDT',
+		decimals: 6,
+		address: '0x...', // 替换为你的 USDT 合约地址
+		chain_id: 1
+	},
+	{
+		id: 2,
+		name: 'USD Coin',
+		symbol: 'USDC',
+		decimals: 6,
+		address: '0x...', // 替换为 your USDC 合约地址
+		chain_id: 1
+	}
+];
+
 const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 	const [fiatAmount, setFiatAmount] = useState<number>();
 	const [tokenAmount, setTokenAmount] = useState<number>();
 	const [currency, setCurrency] = useState<FiatCurrency>();
-	const [token, setToken] = useState<Token>();
+	
+	// 2. 默认选择第一个币种（USDT）
+	const [token, setToken] = useState<Token>(STABLECOINS[0]);
 	const [loading, setLoading] = useState(false);
 	const [creatingAd, setCreatingAd] = useState(false);
 	const router = useRouter();
@@ -148,7 +170,15 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 						id="crypto"
 						placeholder="Enter Amount"
 						extraStyle="h-16"
-						addOn={<TokenSelect onSelect={setToken} selected={token} minimal allTokens />}
+						addOn={
+							// 3. 将 TokenSelect 传入只包含 USDT 和 USDC 的 tokens 数组
+							<TokenSelect
+								onSelect={setToken}
+								selected={token}
+								minimal
+								tokens={STABLECOINS}
+							/>
+						}
 						type="decimal"
 						decimalScale={token?.decimals}
 						onChangeNumber={debounce(onChangeToken, 1000)}
