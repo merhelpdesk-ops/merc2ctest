@@ -11,23 +11,31 @@ import { allChains } from 'models/networks';
 import { ListStepProps } from './Listing.types';
 import StepLayout from './StepLayout';
 
-// 1. 定义仅支持的稳定币列表（USDT / USDC）
+// 1. 定义仅支持的稳定币列表（补全 Token 类型所必需的属性）
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
 		name: 'Tether USD',
 		symbol: 'USDT',
 		decimals: 6,
-		address: '0x...', // 替换为你的 USDT 合约地址
-		chain_id: 1
+		address: '0x...', // 替换为实际 USDT 合约地址
+		chain_id: 1,
+		coingecko_id: 'tether',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	},
 	{
 		id: 2,
 		name: 'USD Coin',
 		symbol: 'USDC',
 		decimals: 6,
-		address: '0x...', // 替换为你的 USDC 合约地址
-		chain_id: 1
+		address: '0x...', // 替换为实际 USDC 合约地址
+		chain_id: 1,
+		coingecko_id: 'usd-coin',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	}
 ];
 
