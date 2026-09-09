@@ -176,7 +176,10 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 					Authorization: `Bearer ${getAuthToken()}`
 				}
 			});
-			const searchLists: List[] = await response.json();
+			const data = await response.json();
+
+			// 防崩处理：校验 data 是否为数组
+			const searchLists: List[] = Array.isArray(data) ? data : [];
 			updateLists(searchLists);
 
 			const [list] = searchLists;
@@ -192,6 +195,7 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 			}
 		} catch (error) {
 			console.error(error);
+			updateLists([]);
 		}
 		updateLoading(false);
 	};
