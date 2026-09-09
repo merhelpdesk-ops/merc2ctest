@@ -44,20 +44,64 @@ const STABLECOINS: Token[] = [
 	}
 ];
 
-// 2. 定义限制的法币列表 (CNY, CNH, EUR, USD, SGD)
+// 2. 定义限制的法币列表 (CNY, CNH, EUR, USD, SGD) 并补齐 TypeScript 必需属性
 const FIAT_CURRENCIES: FiatCurrency[] = [
-	{ id: 1, code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-	{ id: 2, code: 'CNH', name: 'Offshore Chinese Yuan', symbol: '¥' },
-	{ id: 3, code: 'EUR', name: 'Euro', symbol: '€' },
-	{ id: 4, code: 'USD', name: 'US Dollar', symbol: '$' },
-	{ id: 5, code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' }
+	{
+		id: 1,
+		code: 'CNY',
+		name: 'Chinese Yuan',
+		symbol: '¥',
+		icon: '',
+		country_code: 'CN',
+		allow_binance_rates: true,
+		default_price_source: 'binance'
+	},
+	{
+		id: 2,
+		code: 'CNH',
+		name: 'Offshore Chinese Yuan',
+		symbol: '¥',
+		icon: '',
+		country_code: 'CN',
+		allow_binance_rates: true,
+		default_price_source: 'binance'
+	},
+	{
+		id: 3,
+		code: 'EUR',
+		name: 'Euro',
+		symbol: '€',
+		icon: '',
+		country_code: 'EU',
+		allow_binance_rates: true,
+		default_price_source: 'binance'
+	},
+	{
+		id: 4,
+		code: 'USD',
+		name: 'US Dollar',
+		symbol: '$',
+		icon: '',
+		country_code: 'US',
+		allow_binance_rates: true,
+		default_price_source: 'binance'
+	},
+	{
+		id: 5,
+		code: 'SGD',
+		name: 'Singapore Dollar',
+		symbol: 'S$',
+		icon: '',
+		country_code: 'SG',
+		allow_binance_rates: true,
+		default_price_source: 'binance'
+	}
 ];
 
 const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 	const [fiatAmount, setFiatAmount] = useState<number>();
 	const [tokenAmount, setTokenAmount] = useState<number>();
 
-	// 3. 将默认法币设置为 FIAT_CURRENCIES[0]，类型设为 FiatCurrency | undefined
 	const [currency, setCurrency] = useState<FiatCurrency | undefined>(FIAT_CURRENCIES[0]);
 	const [token, setToken] = useState<Token | undefined>(STABLECOINS[0]);
 	const [loading, setLoading] = useState(false);
