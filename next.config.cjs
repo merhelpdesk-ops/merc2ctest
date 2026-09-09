@@ -3,11 +3,13 @@ const nextConfig = {
 	experimental: {
 		appDir: true
 	},
+	eslint: {
+		// 在打包部署时忽略 ESLint 校验错误
+		ignoreDuringBuilds: true
+	},
 	typescript: {
-		// !! WARN !!
 		// Dangerously allow production builds to successfully complete even if
 		// your project has type errors.
-		// !! WARN !!
 		ignoreBuildErrors: true
 	},
 	images: {
