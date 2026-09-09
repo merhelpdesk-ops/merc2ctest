@@ -59,7 +59,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'CN',
 		allow_binance_rates: true,
-		default_price_source: 'binance'
+		default_price_source: 'binance' as const
 	},
 	{
 		id: 2,
@@ -69,7 +69,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'CN',
 		allow_binance_rates: true,
-		default_price_source: 'binance'
+		default_price_source: 'binance' as const
 	},
 	{
 		id: 3,
@@ -79,7 +79,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'EU',
 		allow_binance_rates: true,
-		default_price_source: 'binance'
+		default_price_source: 'binance' as const
 	},
 	{
 		id: 4,
@@ -89,7 +89,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'US',
 		allow_binance_rates: true,
-		default_price_source: 'binance'
+		default_price_source: 'binance' as const
 	},
 	{
 		id: 5,
@@ -99,7 +99,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'SG',
 		allow_binance_rates: true,
-		default_price_source: 'binance'
+		default_price_source: 'binance' as const
 	}
 ];
 
