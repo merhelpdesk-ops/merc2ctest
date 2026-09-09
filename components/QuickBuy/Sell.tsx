@@ -212,7 +212,6 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 				<CurrencySelect
 					onSelect={setCurrency}
 					selected={currency}
-					currencies={FIAT_CURRENCIES}
 					label="Fiat to Receive"
 					height="h-16"
 					selectTheFirst
