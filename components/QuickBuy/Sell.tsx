@@ -21,7 +21,7 @@ interface SellProps {
 	onLoading: (loading: boolean) => void;
 }
 
-// 1. 定义仅支持的稳定币列表（补全 Token 类型所必需的属性）
+// 1. 定义仅支持的稳定币列表
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
@@ -49,11 +49,20 @@ const STABLECOINS: Token[] = [
 	}
 ];
 
+// 2. 定义支持的法币列表 (CNY, CNH, EUR, USD, SGD)
+const FIAT_CURRENCIES: FiatCurrency[] = [
+	{ id: 1, code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+	{ id: 2, code: 'CNH', name: 'Offshore Chinese Yuan', symbol: '¥' },
+	{ id: 3, code: 'EUR', name: 'Euro', symbol: '€' },
+	{ id: 4, code: 'USD', name: 'US Dollar', symbol: '$' },
+	{ id: 5, code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' }
+];
+
 const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 	const [tokenAmount, setTokenAmount] = useState<number>();
-	const [currency, setCurrency] = useState<FiatCurrency>();
 	
-	// 2. 将状态类型调整为 Token | undefined，解决 TypeScript 类型不匹配报错
+	// 3. 设置默认选中的法币并声明类型 FiatCurrency | undefined
+	const [currency, setCurrency] = useState<FiatCurrency | undefined>(FIAT_CURRENCIES[0]);
 	const [token, setToken] = useState<Token | undefined>(STABLECOINS[0]);
 	const [creatingAd, setCreatingAd] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -124,7 +133,7 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 			router.push(
 				{
 					pathname: '/sell',
-					query: { currency: currency.id, token: token?.id, tokenAmount }
+					query: { currency: currency?.id, token: token?.id, tokenAmount }
 				},
 				'/sell'
 			);
@@ -159,9 +168,9 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 				<CurrencySelect
 					onSelect={setCurrency}
 					selected={currency}
+					currencies={FIAT_CURRENCIES}
 					label="Fiat to Receive"
 					height="h-16"
-					selectByLocation
 					selectTheFirst
 				/>
 				{lists.length > 0 ? (
