@@ -59,7 +59,8 @@ const Input = ({
 
 	const onValueChange: OnValueChange = ({ floatValue }) => onChangeNumber?.(floatValue);
 
-	const baseClassName = `block w-full rounded-md pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm placeholder:text-slate-400 ${
+	// 关键修改：加上 text-gray-900 保证输入的文字为黑色/深灰色，避免白色文本看不见
+	const baseClassName = `block w-full rounded-md pr-12 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm placeholder:text-slate-400 ${
 		!!prefix && 'text-right'
 	}`;
 
