@@ -21,7 +21,7 @@ interface SellProps {
 	onLoading: (loading: boolean) => void;
 }
 
-// 1. 定义仅支持的稳定币列表（USDT / USDC）
+// 补全 Token 接口要求的必填属性：coingecko_id, icon, gasless, allow_binance_rates
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
@@ -29,7 +29,11 @@ const STABLECOINS: Token[] = [
 		symbol: 'USDT',
 		decimals: 6,
 		address: '0x...', // 替换为你的 USDT 合约地址
-		chain_id: 1
+		chain_id: 1,
+		coingecko_id: 'tether',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	},
 	{
 		id: 2,
@@ -37,7 +41,11 @@ const STABLECOINS: Token[] = [
 		symbol: 'USDC',
 		decimals: 6,
 		address: '0x...', // 替换为你的 USDC 合约地址
-		chain_id: 1
+		chain_id: 1,
+		coingecko_id: 'usd-coin',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	}
 ];
 
@@ -45,7 +53,7 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 	const [tokenAmount, setTokenAmount] = useState<number>();
 	const [currency, setCurrency] = useState<FiatCurrency>();
 	
-	// 2. 默认选择第一个代币（USDT）
+	// 默认选择第一个代币（USDT）
 	const [token, setToken] = useState<Token>(STABLECOINS[0]);
 	const [creatingAd, setCreatingAd] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -135,7 +143,6 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 						placeholder="Enter Amount"
 						extraStyle="h-16"
 						addOn={
-							// 3. 将 TokenSelect 的 allTokens 替换为指定代币数组
 							<TokenSelect
 								onSelect={setToken}
 								selected={token}
