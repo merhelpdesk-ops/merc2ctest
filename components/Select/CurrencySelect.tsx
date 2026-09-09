@@ -8,6 +8,9 @@ import React, { useEffect, useState } from 'react';
 import Select from './Select';
 import { FiatCurrencySelect, SelectProps } from './Select.types';
 
+// 允许支持的法币白名单代码
+const ALLOWED_CURRENCY_CODES = ['CNY', 'CNH', 'EUR', 'USD', 'SGD'];
+
 const CurrencySelect = ({
 	onSelect,
 	selected,
@@ -59,8 +62,13 @@ const CurrencySelect = ({
 		})
 			.then((res) => res.json())
 			.then((data) => {
-				setRawCurrencies(data);
-				const filtered: FiatCurrency[] = data.map((c: FiatCurrency) => ({ ...c, ...{ name: c.code } }));
+				// 关键修复：仅保留白名单内的 5 种法币
+				const filteredData = Array.isArray(data)
+					? data.filter((c: FiatCurrency) => ALLOWED_CURRENCY_CODES.includes(c.code))
+					: [];
+
+				setRawCurrencies(filteredData);
+				const filtered: FiatCurrency[] = filteredData.map((c: FiatCurrency) => ({ ...c, ...{ name: c.code } }));
 				setCurrencies(filtered);
 				if (selectedIdOnLoad) {
 					if (!selected) {
