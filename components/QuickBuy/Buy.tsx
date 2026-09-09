@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { truncate } from 'utils';
 
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { getAuthToken } from '@dynamic-labs/sdk-react-core';
 
 interface BuyProps {
@@ -16,14 +16,14 @@ interface BuyProps {
 	onLoading: (loading: boolean) => void;
 }
 
-// 1. 定义仅支持的稳定币列表
+// 1. 仅支持 USDT 和 USDC
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
 		name: 'Tether USD',
 		symbol: 'USDT',
 		decimals: 6,
-		address: '0x...', // 替换为实际 USDT 合约地址
+		address: '0x...',
 		chain_id: 1,
 		coingecko_id: 'tether',
 		icon: '',
@@ -35,7 +35,7 @@ const STABLECOINS: Token[] = [
 		name: 'USD Coin',
 		symbol: 'USDC',
 		decimals: 6,
-		address: '0x...', // 替换为实际 USDC 合约地址
+		address: '0x...',
 		chain_id: 1,
 		coingecko_id: 'usd-coin',
 		icon: '',
@@ -44,73 +44,58 @@ const STABLECOINS: Token[] = [
 	}
 ];
 
-// 2. 定义限制的法币列表 (CNY, CNH, EUR, USD, SGD) 并补齐 TypeScript 必需属性
-const FIAT_CURRENCIES: FiatCurrency[] = [
-	{
-		id: 1,
-		code: 'CNY',
-		name: 'Chinese Yuan',
-		symbol: '¥',
-		icon: '',
-		country_code: 'CN',
-		allow_binance_rates: true,
-		default_price_source: 'binance' as unknown as PriceSource
-	},
-	{
-		id: 2,
-		code: 'CNH',
-		name: 'Offshore Chinese Yuan',
-		symbol: '¥',
-		icon: '',
-		country_code: 'CN',
-		allow_binance_rates: true,
-		default_price_source: 'binance' as unknown as PriceSource
-	},
-	{
-		id: 3,
-		code: 'EUR',
-		name: 'Euro',
-		symbol: '€',
-		icon: '',
-		country_code: 'EU',
-		allow_binance_rates: true,
-		default_price_source: 'binance' as unknown as PriceSource
-	},
-	{
-		id: 4,
-		code: 'USD',
-		name: 'US Dollar',
-		symbol: '$',
-		icon: '',
-		country_code: 'US',
-		allow_binance_rates: true,
-		default_price_source: 'binance' as unknown as PriceSource
-	},
-	{
-		id: 5,
-		code: 'SGD',
-		name: 'Singapore Dollar',
-		symbol: 'S$',
-		icon: '',
-		country_code: 'SG',
-		allow_binance_rates: true,
-		default_price_source: 'binance' as unknown as PriceSource
-	}
+// 2. 仅支持指定 5 种法币 (CNY, CNH, EUR, USD, SGD)
+const ALLOWED_FIATS: FiatCurrency[] = [
+	{ id: 1, code: 'CNY', name: 'Chinese Yuan', symbol: '¥', icon: '', country_code: 'CN', allow_binance_rates: true, default_price_source: 'binance' as unknown as PriceSource },
+	{ id: 2, code: 'CNH', name: 'Offshore Chinese Yuan', symbol: '¥', icon: '', country_code: 'CN', allow_binance_rates: true, default_price_source: 'binance' as unknown as PriceSource },
+	{ id: 3, code: 'EUR', name: 'Euro', symbol: '€', icon: '', country_code: 'EU', allow_binance_rates: true, default_price_source: 'binance' as unknown as PriceSource },
+	{ id: 4, code: 'USD', name: 'US Dollar', symbol: '$', icon: '', country_code: 'US', allow_binance_rates: true, default_price_source: 'binance' as unknown as PriceSource },
+	{ id: 5, code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', icon: '', country_code: 'SG', allow_binance_rates: true, default_price_source: 'binance' as unknown as PriceSource }
 ];
+
+// 5 种法币的汇率备用降级策略
+const FALLBACK_RATES: Record<string, number> = {
+	CNY: 7.23,
+	CNH: 7.23,
+	EUR: 0.92,
+	USD: 1.0,
+	SGD: 1.34
+};
 
 const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 	const [fiatAmount, setFiatAmount] = useState<number>();
 	const [tokenAmount, setTokenAmount] = useState<number>();
 
-	const [currency, setCurrency] = useState<FiatCurrency | undefined>(FIAT_CURRENCIES[0]);
+	const [currency, setCurrency] = useState<FiatCurrency | undefined>(ALLOWED_FIATS[0]);
 	const [token, setToken] = useState<Token | undefined>(STABLECOINS[0]);
 	const [loading, setLoading] = useState(false);
 	const [creatingAd, setCreatingAd] = useState(false);
+
+	const [estimatedPrice, setEstimatedPrice] = useState<number>();
+
 	const router = useRouter();
 
 	const updateLoading = (l: boolean) => {
 		setLoading(l);
 		onLoading(l);
+	};
+
+	// 抓取币安实时汇率
+	const fetchBinanceRate = async (fiatCode: string, tokenSymbol: string) => {
+		try {
+			if (fiatCode === 'USD') return 1;
+
+			const symbol = `${tokenSymbol}${fiatCode === 'CNH' ? 'CNY' : fiatCode}`.toUpperCase();
+			const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+			const data = await res.json();
+			if (data && data.price) {
+				return parseFloat(data.price);
+			}
+		} catch (e) {
+			console.error('Fetch binance rate error:', e);
+		}
+
+		return FALLBACK_RATES[fiatCode] || 1;
 	};
 
 	const search = async ({
@@ -144,14 +129,21 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 
 			const [list] = searchLists;
 			const { price } = list || {};
+
 			if (price) {
+				// 有卖单：取订单价格
+				setEstimatedPrice(price);
 				if (tokenValue) setFiatAmount(tokenValue * price);
 				if (fiatValue) setTokenAmount(truncate(fiatValue / price, token.decimals));
 			} else {
-				// @ts-ignore
-				if (fiatValue) setTokenAmount('');
-				// @ts-ignore
-				if (tokenValue) setFiatAmount('');
+				// 无卖单：抓取币安参考汇率进行换算
+				const rate = await fetchBinanceRate(currency.code, token.symbol);
+				setEstimatedPrice(rate);
+
+				if (rate) {
+					if (fiatValue) setTokenAmount(truncate(fiatValue / rate, token.decimals));
+					if (tokenValue) setFiatAmount(tokenValue * rate);
+				}
 			}
 		} catch (error) {
 			console.error(error);
@@ -187,7 +179,7 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 	const onButtonClick = async () => {
 		if (disabled) return;
 
-		if (!!fiatAmount && !!tokenAmount && !!currency && !!token) {
+		if (!!fiatAmount && !!tokenAmount && !!currency && !!token && lists.length > 0) {
 			onSeeOptions(fiatAmount, tokenAmount);
 		} else if (presentSearchParams && lists.length === 0) {
 			setCreatingAd(true);
@@ -210,7 +202,7 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 						label="Fiat Amount"
 						id="fiat"
 						placeholder="Enter Amount"
-						extraStyle="h-16"
+						extraStyle="h-16 text-gray-900"
 						addOn={
 							<CurrencySelect
 								onSelect={setCurrency}
@@ -229,7 +221,7 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 						label="Crypto to Receive"
 						id="crypto"
 						placeholder="Enter Amount"
-						extraStyle="h-16"
+						extraStyle="h-16 text-gray-900"
 						addOn={
 							<TokenSelect
 								onSelect={setToken}
@@ -244,6 +236,8 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 						value={tokenAmount}
 					/>
 				</div>
+
+				{/* 汇率与挂单提示 */}
 				{lists.length > 0 ? (
 					<div className="mb-2 flex flex-row items-center">
 						<CheckIcon width={20} height={20} className="text-green-500 stroke-2 mr-1" />
@@ -257,8 +251,19 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 					!!currency &&
 					(!!fiatAmount || !!tokenAmount) &&
 					!loading && (
-						<div className="mb-2 text-sm text-gray-700">
-							<span>We could not find any available sellers. Post a buy ad instead.</span>
+						<div className="mb-3">
+							{!!estimatedPrice && (
+								<div className="mb-1 flex flex-row items-center text-xs text-blue-600">
+									<InformationCircleIcon width={16} height={16} className="mr-1" />
+									<span>
+										Estimated Binance Rate: 1 {token?.symbol} ≈ {currency?.symbol}{' '}
+										{estimatedPrice.toFixed(2)} {currency?.code}
+									</span>
+								</div>
+							)}
+							<div className="text-sm text-gray-700">
+								<span>We could not find any available sellers. Post a buy ad instead.</span>
+							</div>
 						</div>
 					)
 				)}
