@@ -215,7 +215,6 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 							<CurrencySelect
 								onSelect={setCurrency}
 								selected={currency}
-								currencies={FIAT_CURRENCIES}
 								minimal
 								selectTheFirst
 							/>
