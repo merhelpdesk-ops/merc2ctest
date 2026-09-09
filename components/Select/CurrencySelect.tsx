@@ -2,14 +2,67 @@
 /* eslint-disable @typescript-eslint/indent */
 import { getAuthToken } from '@dynamic-labs/sdk-react-core';
 import Loading from 'components/Loading/Loading';
-import { FiatCurrency } from 'models/types';
+import { FiatCurrency, PriceSource } from 'models/types';
 import React, { useEffect, useState } from 'react';
 
 import Select from './Select';
 import { FiatCurrencySelect, SelectProps } from './Select.types';
 
-// 允许支持的法币白名单代码
 const ALLOWED_CURRENCY_CODES = ['CNY', 'CNH', 'EUR', 'USD', 'SGD'];
+
+// 兜底本地数据，防止接口无数据或未登录时为空
+const DEFAULT_FIAT_CURRENCIES: FiatCurrency[] = [
+	{
+		id: 1,
+		code: 'CNY',
+		name: 'Chinese Yuan',
+		symbol: '¥',
+		icon: '',
+		country_code: 'CN',
+		allow_binance_rates: true,
+		default_price_source: 'binance' as unknown as PriceSource
+	},
+	{
+		id: 2,
+		code: 'CNH',
+		name: 'Offshore Chinese Yuan',
+		symbol: '¥',
+		icon: '',
+		country_code: 'CN',
+		allow_binance_rates: true,
+		default_price_source: 'binance' as unknown as PriceSource
+	},
+	{
+		id: 3,
+		code: 'EUR',
+		name: 'Euro',
+		symbol: '€',
+		icon: '',
+		country_code: 'EU',
+		allow_binance_rates: true,
+		default_price_source: 'binance' as unknown as PriceSource
+	},
+	{
+		id: 4,
+		code: 'USD',
+		name: 'US Dollar',
+		symbol: '$',
+		icon: '',
+		country_code: 'US',
+		allow_binance_rates: true,
+		default_price_source: 'binance' as unknown as PriceSource
+	},
+	{
+		id: 5,
+		code: 'SGD',
+		name: 'Singapore Dollar',
+		symbol: 'S$',
+		icon: '',
+		country_code: 'SG',
+		allow_binance_rates: true,
+		default_price_source: 'binance' as unknown as PriceSource
+	}
+];
 
 const CurrencySelect = ({
 	onSelect,
@@ -62,14 +115,26 @@ const CurrencySelect = ({
 		})
 			.then((res) => res.json())
 			.then((data) => {
-				// 关键修复：仅保留白名单内的 5 种法币
-				const filteredData = Array.isArray(data)
-					? data.filter((c: FiatCurrency) => ALLOWED_CURRENCY_CODES.includes(c.code))
-					: [];
+				let filteredData: FiatCurrency[] = [];
+
+				if (Array.isArray(data)) {
+					filteredData = data.filter((c: FiatCurrency) =>
+						ALLOWED_CURRENCY_CODES.includes(c?.code?.toUpperCase())
+					);
+				}
+
+				// 如果接口没返回数据或没有匹配到，则使用兜底数据
+				if (!filteredData || filteredData.length === 0) {
+					filteredData = DEFAULT_FIAT_CURRENCIES;
+				}
 
 				setRawCurrencies(filteredData);
-				const filtered: FiatCurrency[] = filteredData.map((c: FiatCurrency) => ({ ...c, ...{ name: c.code } }));
+				const filtered: FiatCurrency[] = filteredData.map((c: FiatCurrency) => ({
+					...c,
+					name: c.code
+				}));
 				setCurrencies(filtered);
+
 				if (selectedIdOnLoad) {
 					if (!selected) {
 						const toSelect = filtered.find(({ id }) => String(id) === selectedIdOnLoad);
@@ -80,6 +145,17 @@ const CurrencySelect = ({
 				} else if (selectTheFirst && !selected && filtered[0]) {
 					onSelect(filtered[0]);
 				}
+			})
+			.catch(() => {
+				// 接口报错时使用兜底数据
+				const fallback = DEFAULT_FIAT_CURRENCIES.map((c) => ({ ...c, name: c.code }));
+				setRawCurrencies(DEFAULT_FIAT_CURRENCIES);
+				setCurrencies(fallback);
+				if (selectTheFirst && !selected && fallback[0]) {
+					onSelect(fallback[0]);
+				}
+			})
+			.finally(() => {
 				setLoading(false);
 			});
 	}, []);
