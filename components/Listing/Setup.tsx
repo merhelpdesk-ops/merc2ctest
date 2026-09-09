@@ -11,6 +11,26 @@ import { allChains } from 'models/networks';
 import { ListStepProps } from './Listing.types';
 import StepLayout from './StepLayout';
 
+// 1. 定义仅支持的稳定币列表（USDT / USDC）
+const STABLECOINS: Token[] = [
+	{
+		id: 1,
+		name: 'Tether USD',
+		symbol: 'USDT',
+		decimals: 6,
+		address: '0x...', // 替换为你的 USDT 合约地址
+		chain_id: 1
+	},
+	{
+		id: 2,
+		name: 'USD Coin',
+		symbol: 'USDC',
+		decimals: 6,
+		address: '0x...', // 替换为你的 USDC 合约地址
+		chain_id: 1
+	}
+];
+
 const Setup = ({ list, updateList }: ListStepProps) => {
 	const { chain: connectedChain } = useNetwork();
 	const { token, currency, type, chainId } = list;
@@ -93,12 +113,14 @@ const Setup = ({ list, updateList }: ListStepProps) => {
 
 	return (
 		<StepLayout onProceed={onProceed}>
+			{/* 2. 传入 tokens={STABLECOINS} 锁定可选项 */}
 			<TokenSelect
 				onSelect={updateToken}
 				selected={token}
 				error={errors.token}
 				label={type === 'BuyList' ? 'Choose token to receive' : undefined}
 				networkId={chain?.id}
+				tokens={STABLECOINS}
 			/>
 			<CurrencySelect
 				onSelect={updateCurrency}
