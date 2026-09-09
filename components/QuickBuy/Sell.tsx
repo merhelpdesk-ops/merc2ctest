@@ -6,7 +6,7 @@ import CurrencySelect from 'components/Select/CurrencySelect';
 import TokenSelect from 'components/Select/TokenSelect';
 import { useEscrowFee } from 'hooks';
 import debounce from 'lodash.debounce';
-import { FiatCurrency, List, Token } from 'models/types';
+import { FiatCurrency, List, PriceSource, Token } from 'models/types';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
@@ -59,7 +59,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'CN',
 		allow_binance_rates: true,
-		default_price_source: 'binance' as const
+		default_price_source: 'binance' as unknown as PriceSource
 	},
 	{
 		id: 2,
@@ -69,7 +69,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'CN',
 		allow_binance_rates: true,
-		default_price_source: 'binance' as const
+		default_price_source: 'binance' as unknown as PriceSource
 	},
 	{
 		id: 3,
@@ -79,7 +79,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'EU',
 		allow_binance_rates: true,
-		default_price_source: 'binance' as const
+		default_price_source: 'binance' as unknown as PriceSource
 	},
 	{
 		id: 4,
@@ -89,7 +89,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'US',
 		allow_binance_rates: true,
-		default_price_source: 'binance' as const
+		default_price_source: 'binance' as unknown as PriceSource
 	},
 	{
 		id: 5,
@@ -99,7 +99,7 @@ const FIAT_CURRENCIES: FiatCurrency[] = [
 		icon: '',
 		country_code: 'SG',
 		allow_binance_rates: true,
-		default_price_source: 'binance' as const
+		default_price_source: 'binance' as unknown as PriceSource
 	}
 ];
 
