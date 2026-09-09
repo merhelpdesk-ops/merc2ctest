@@ -23,7 +23,7 @@ const STABLECOINS: Token[] = [
 		name: 'Tether USD',
 		symbol: 'USDT',
 		decimals: 6,
-		address: '0x...', // 替换为你的 USDT 合约地址
+		address: '0x...', // 替换为实际 USDT 合约地址
 		chain_id: 1,
 		coingecko_id: 'tether',
 		icon: '',
@@ -35,7 +35,7 @@ const STABLECOINS: Token[] = [
 		name: 'USD Coin',
 		symbol: 'USDC',
 		decimals: 6,
-		address: '0x...', // 替换为 your USDC 合约地址
+		address: '0x...', // 替换为实际 USDC 合约地址
 		chain_id: 1,
 		coingecko_id: 'usd-coin',
 		icon: '',
@@ -49,8 +49,8 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 	const [tokenAmount, setTokenAmount] = useState<number>();
 	const [currency, setCurrency] = useState<FiatCurrency>();
 	
-	// 2. 默认选择第一个币种（USDT）
-	const [token, setToken] = useState<Token>(STABLECOINS[0]);
+	// 2. 将状态类型调整为 Token | undefined，解决类型不匹配报错
+	const [token, setToken] = useState<Token | undefined>(STABLECOINS[0]);
 	const [loading, setLoading] = useState(false);
 	const [creatingAd, setCreatingAd] = useState(false);
 	const router = useRouter();
@@ -179,7 +179,6 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 						placeholder="Enter Amount"
 						extraStyle="h-16"
 						addOn={
-							// 3. 将 TokenSelect 传入只包含 USDT 和 USDC 的 tokens 数组
 							<TokenSelect
 								onSelect={setToken}
 								selected={token}
