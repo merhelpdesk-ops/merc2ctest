@@ -124,7 +124,10 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 					Authorization: `Bearer ${getAuthToken()}`
 				}
 			});
-			const searchLists: List[] = await response.json();
+			const data = await response.json();
+
+			// 核心修改：防崩溃校验，确保 data 是数组
+			const searchLists: List[] = Array.isArray(data) ? data : [];
 			updateLists(searchLists);
 
 			const [list] = searchLists;
@@ -147,6 +150,7 @@ const Buy = ({ lists, updateLists, onSeeOptions, onLoading }: BuyProps) => {
 			}
 		} catch (error) {
 			console.error(error);
+			updateLists([]);
 		}
 		updateLoading(false);
 	};
