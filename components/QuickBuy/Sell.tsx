@@ -21,7 +21,7 @@ interface SellProps {
 	onLoading: (loading: boolean) => void;
 }
 
-// 补全 Token 接口要求的必填属性：coingecko_id, icon, gasless, allow_binance_rates
+// 1. 定义仅支持的稳定币列表（补全 Token 类型所必需的属性）
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
@@ -53,8 +53,8 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 	const [tokenAmount, setTokenAmount] = useState<number>();
 	const [currency, setCurrency] = useState<FiatCurrency>();
 	
-	// 默认选择第一个代币（USDT）
-	const [token, setToken] = useState<Token>(STABLECOINS[0]);
+	// 2. 将状态类型调整为 Token | undefined，解决 TypeScript 类型不匹配报错
+	const [token, setToken] = useState<Token | undefined>(STABLECOINS[0]);
 	const [creatingAd, setCreatingAd] = useState(false);
 	const [loading, setLoading] = useState(false);
 
@@ -124,7 +124,7 @@ const Sell = ({ lists, updateLists, onSeeOptions, onLoading }: SellProps) => {
 			router.push(
 				{
 					pathname: '/sell',
-					query: { currency: currency.id, token: token.id, tokenAmount }
+					query: { currency: currency.id, token: token?.id, tokenAmount }
 				},
 				'/sell'
 			);
