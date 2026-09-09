@@ -16,7 +16,7 @@ interface BuyProps {
 	onLoading: (loading: boolean) => void;
 }
 
-// 1. 定义仅支持的稳定币列表（USDT / USDC）
+// 1. 定义仅支持的稳定币列表（补全 Token 类型所必需的属性）
 const STABLECOINS: Token[] = [
 	{
 		id: 1,
@@ -24,7 +24,11 @@ const STABLECOINS: Token[] = [
 		symbol: 'USDT',
 		decimals: 6,
 		address: '0x...', // 替换为你的 USDT 合约地址
-		chain_id: 1
+		chain_id: 1,
+		coingecko_id: 'tether',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	},
 	{
 		id: 2,
@@ -32,7 +36,11 @@ const STABLECOINS: Token[] = [
 		symbol: 'USDC',
 		decimals: 6,
 		address: '0x...', // 替换为 your USDC 合约地址
-		chain_id: 1
+		chain_id: 1,
+		coingecko_id: 'usd-coin',
+		icon: '',
+		gasless: false,
+		allow_binance_rates: false
 	}
 ];
 
