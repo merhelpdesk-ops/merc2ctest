@@ -17,7 +17,8 @@ const TokenSelect = ({
 	label = 'Choose token to list',
 	labelStyle = '',
 	networkId,
-	allTokens = false
+	allTokens = false,
+	tokens: customTokens
 }: TokenSelectProps) => {
 	const [tokens, setTokens] = useState<Token[]>();
 	const [isLoading, setLoading] = useState(false);
@@ -25,6 +26,21 @@ const TokenSelect = ({
 	const chainId = allTokens ? undefined : networkId || chain?.id || chains[0]?.id || polygon.id;
 
 	useEffect(() => {
+		if (customTokens && customTokens.length > 0) {
+			setTokens(customTokens);
+			if (selectedIdOnLoad) {
+				if (!selected) {
+					const toSelect = customTokens.find(({ id }) => String(id) === selectedIdOnLoad);
+					if (toSelect) {
+						onSelect(toSelect);
+					}
+				}
+			} else if (minimal && !selected && customTokens[0]) {
+				onSelect(customTokens[0]);
+			}
+			return;
+		}
+
 		if (!chainId && !allTokens) return;
 
 		setLoading(true);
@@ -38,7 +54,6 @@ const TokenSelect = ({
 			.then((data) => {
 				const source: Token[] = minimal ? data.map((t: Token) => ({ ...t, ...{ name: t.symbol } })) : data;
 				if (allTokens) {
-					// remove symbol duplicates from the source array
 					const uniqueSymbols = new Set<string>();
 					const uniqueSource = source.filter((t) => {
 						if (uniqueSymbols.has(t.symbol)) {
@@ -64,7 +79,7 @@ const TokenSelect = ({
 				}
 				setLoading(false);
 			});
-	}, [chainId]);
+	}, [chainId, customTokens]);
 
 	if (isLoading) {
 		return <Loading message="" big={false} />;
