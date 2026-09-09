@@ -46,6 +46,7 @@ export interface TokenSelectProps {
 	labelStyle?: string;
 	networkId?: number;
 	allTokens?: boolean;
+	tokens?: Token[];
 }
 
 export interface TimezoneSelectProps {
